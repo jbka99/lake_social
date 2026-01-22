@@ -311,3 +311,15 @@ button:active {
 .author-name:hover {
     color: #2ecc71; /* Подсветка при наведении */
 }
+
+.author-names-block {
+    display: flex;
+    flex-direction: column; /* Имя и юзернейм друг под другом */
+    line-height: 1.2;
+}
+
+.author-username {
+    font-size: 0.85rem;
+    color: #888; /* Серый цвет */
+    font-weight: normal;
+}
