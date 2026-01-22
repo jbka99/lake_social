@@ -76,10 +76,27 @@ def logout():
 @login_required
 def settings():
     if request.method == 'POST':
-        current_user.display_name = request.form.get('display_name')
-        current_user.age = request.form.get('age')
-        current_user.bio = request.form.get('bio')
-        current_user.avatar_url = request.form.get('avatar_url')
+        age_val = request.form.get('age')
+        if age_val and age_val.strip():
+            try:
+                current_user.age = int(age_val)
+            except ValueError:
+                pass
+        else:
+            current_user.age = None
+
+        display_name = request.form.get('display_name', '').strip()    
+        current_user.display_name = display_name if display_name else current_user.username
+
+        bio = request.form.get('bio', '').strip()
+        current_user.bio = bio if bio else None
+
+        avatar_link = request.form.get('avatar_url', '').strip()
+        
+        if avatar_link:
+            current_user.avatar_url = avatar_link
+        else:
+            current_user.avatar_url = f"https://api.dicebear.com/7.x/identicon/svg?seed={current_user.username}"
 
         db.session.commit()
 
