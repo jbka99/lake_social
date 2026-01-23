@@ -3,31 +3,85 @@
 {% block title %}Настройки профиля{% endblock %}
 
 {% block content %}
-<div class="settings-card">
-    <h2>Настройки профиля</h2>
-    <form method="POST">
-        <div class="form-group">
-            <label>Отображаемое имя</label>
-            <input type="text" name="display_name" value="{{ user.display_name or '' }}" placeholder="Как вас называть?">
-        </div>
-        
-        <div class="form-group">
-            <label>Возраст</label>
-            <input type="number" name="age" value="{{ user.age or '' }}" placeholder="Сколько вам лет?">
-        </div>
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8 col-xl-7">
 
-        <div class="form-group">
-            <label>Ссылка на аватарку (URL)</label>
-            <input type="text" name="avatar_url" value="{{ user.avatar_url or '' }}" placeholder="https://image.com/photo.jpg">
-        </div>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h1 class="h4 mb-0 fw-bold">Настройки профиля</h1>
+      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('routes.index') }}">← В профиль</a>
+    </div>
 
-        <div class="form-group">
-            <label>О себе</label>
-            <textarea name="bio" rows="4" placeholder="Расскажите о себе...">{{ user.bio or '' }}</textarea>
-        </div>
+    <div class="card bg-black border border-secondary shadow-sm">
+      <div class="card-body p-4">
 
-        <button type="submit">Сохранить изменения</button>
-    </form>
-    <a href="{{ url_for('routes.index') }}" style="display: block; text-align: center; margin-top: 15px; color: #888; text-decoration: none; font-size: 0.8rem;">Назад в профиль</a>
+        <form method="POST" class="d-grid gap-3">
+
+          <div>
+            <label class="form-label text-secondary">Отображаемое имя</label>
+            <input
+              type="text"
+              name="display_name"
+              class="form-control"
+              value="{{ user.display_name or '' }}"
+              placeholder="Как вас называть?"
+              maxlength="50"
+            >
+            <div class="form-text text-secondary">
+              Это имя увидят другие пользователи (можно оставить пустым).
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label text-secondary">Возраст</label>
+            <input
+              type="number"
+              name="age"
+              class="form-control"
+              value="{{ user.age or '' }}"
+              placeholder="Сколько вам лет?"
+              min="0"
+              max="120"
+            >
+          </div>
+
+          <div>
+            <label class="form-label text-secondary">Ссылка на аватарку (URL)</label>
+            <input
+              type="url"
+              name="avatar_url"
+              class="form-control"
+              value="{{ user.avatar_url or '' }}"
+              placeholder="https://example.com/photo.jpg"
+            >
+            <div class="form-text text-secondary">
+              Поддерживается прямая ссылка на картинку. Если оставить пустым — будет авто-аватар.
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label text-secondary">О себе</label>
+            <textarea
+              name="bio"
+              class="form-control"
+              rows="5"
+              placeholder="Расскажите о себе..."
+            >{{ user.bio or '' }}</textarea>
+          </div>
+
+          <div class="d-flex flex-column flex-sm-row gap-2 justify-content-end pt-2">
+            <a class="btn btn-outline-secondary" href="{{ url_for('routes.index') }}">
+              Отмена
+            </a>
+            <button type="submit" class="btn btn-success">
+              Сохранить
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+
+  </div>
 </div>
 {% endblock %}

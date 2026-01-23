@@ -3,53 +3,77 @@
 {% block title %}Профиль {{ user.username }}{% endblock %}
 
 {% block content %}
-<div class="profile-card">
-    <div class="avatar-container">
-    <img src="{{ user.avatar_url if user.avatar_url else 'https://api.dicebear.com/7.x/identicon/svg?seed=' + user.username }}" 
-         alt="Avatar" 
-         class="profile-avatar"
-         referrerpolicy="no-referrer">
-</div>
-    <div class="profile-info">
-        <h1>{{ user.display_name or user.username }}</h1>
-        <p class="user-age">Возраст: {{ user.age or 'не указан' }}</p>
-        <div class="user-bio">
-            <strong>О себе:</strong>
-            <p>{{ user.bio or 'Пользователь еще ничего не рассказал о себе.' }}</p>
+<div class="row g-4">
+
+  <!-- Профиль пользователя -->
+  <div class="col-12 col-lg-4">
+    <div class="card bg-black border border-secondary shadow-sm">
+      <div class="card-body">
+
+        <div class="d-flex align-items-center gap-3">
+          <img
+            src="{{ user.avatar_url if user.avatar_url else 'https://api.dicebear.com/7.x/identicon/svg?seed=' + user.username }}"
+            alt="Avatar"
+            class="rounded-circle border border-secondary"
+            style="width: 72px; height: 72px; object-fit: cover;"
+            referrerpolicy="no-referrer"
+          >
+
+          <div class="flex-grow-1">
+            <div class="h5 mb-0 fw-bold">
+              {{ user.display_name or user.username }}
+            </div>
+            <div class="text-secondary small">
+              @{{ user.username }}
+            </div>
+          </div>
         </div>
-    </div>
-</div>
 
-<div class="posts-list">
-    <h3>Записи пользователя</h3>
-    {% for post in posts %}
-    <div class="post-item">
-        <div class="post-header">
-    <div class="author-info">
-    <img src="{{ post.author.avatar_url if post.author.avatar_url else 'https://api.dicebear.com/7.x/identicon/svg?seed=' + post.author.username }}" 
-         alt="AV" class="post-avatar" referrerpolicy="no-referrer">
-    
-    <div class="author-names-block">
-        <a href="{{ url_for('routes.user_profile', username=post.author.username) }}" class="author-name">
-            <strong>{{ post.author.display_name or post.author.username }}</strong>
-        </a>
-        <span class="author-username">@{{ post.author.username }}</span>
-    </div>
-</div>
+        <hr class="border-secondary my-4">
 
-    <div class="post-meta">
-        <small>{{ post.date_posted.strftime('%H:%M | %d.%m.%Y') }}</small>
-        
-        {% if current_user.is_admin or post.author == current_user %}
-        <form action="{{ url_for('routes.delete_post', post_id=post.id) }}" method="POST" style="display:inline;">
-            <button type="submit" class="btn-delete" onclick="return confirm('Удалить этот пост?')">×</button>
-        </form>
-        {% endif %}
+        <div class="text-secondary small mb-1">Возраст</div>
+        <div class="mb-3">
+          {{ user.age or 'не указан' }}
+        </div>
+
+        <div class="text-secondary small mb-1">О себе</div>
+        <div class="text-light-emphasis" style="white-space: pre-wrap;">
+          {{ user.bio or 'Пользователь еще ничего не рассказал о себе.' }}
+        </div>
+
+        <div class="mt-4 d-grid gap-2">
+          <a class="btn btn-outline-secondary" href="{{ url_for('routes.feed') }}">В ленту</a>
+
+          {% if current_user.is_authenticated and user.username == current_user.username %}
+            <a class="btn btn-outline-success" href="{{ url_for('routes.index') }}">Мой профиль</a>
+            <a class="btn btn-outline-success" href="{{ url_for('routes.settings') }}">Настройки</a>
+          {% endif %}
+        </div>
+
+      </div>
     </div>
-</div>
-        <h4>{{ post.title }}</h4>
-        <p>{{ post.content }}</p>
+  </div>
+
+  <!-- Посты пользователя -->
+  <div class="col-12 col-lg-8">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="h5 mb-0 fw-bold">Записи пользователя</div>
     </div>
-    {% endfor %}
+
+    {% if posts and posts|length > 0 %}
+      <div class="posts-list">
+        {% for post in posts %}
+          {% include "components/_post_card.html" %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="card bg-black border border-secondary shadow-sm">
+        <div class="card-body text-secondary">
+          У пользователя пока нет постов.
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
 </div>
 {% endblock %}
