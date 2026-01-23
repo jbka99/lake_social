@@ -32,30 +32,13 @@
           Личные сообщения <span class="badge text-bg-light border ms-2">скоро</span>
         </a>
 
-        {# Админка: показываем только если пользователь админ И маршрут существует #}
         {% if current_user.is_authenticated and current_user.is_admin %}
-        {% set admin_endpoint = (
-        'routes.admin_users'
-        if 'routes.admin_users' in current_app.view_functions
-        else (
-          'routes.admin'
-          if 'routes.admin' in current_app.view_functions
-          else (
-            'routes.admin_index'
-            if 'routes.admin_index' in current_app.view_functions
-            else None
-          )
-        )
-      )
-    %}
-
-    {% if admin_endpoint %}
-      <a class="list-group-item list-group-item-action" href="{{ url_for(admin_endpoint) }}">
-        Админка
-      </a>
-    {% endif %}
-  {% endif %}
-
+          <a class="list-group-item list-group-item-action"
+            href="{{ url_for('routes.admin_users') }}">
+            Админка
+          </a>
+        {% endif %}
+        
         <a class="list-group-item list-group-item-action px-0 text-danger" href="{{ url_for('routes.logout') }}">
           Выход
         </a>
