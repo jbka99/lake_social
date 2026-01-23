@@ -1,6 +1,7 @@
 from flask import Flask
 from config import Config
 from app.extensions import db, migrate, login_manager
+from flask_login import current_user
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -13,6 +14,13 @@ def create_app(config_class=Config):
 
     from app.routes import bp as main_bp
     app.register_blueprint(main_bp)
+
+    from app.services import ensure_admin_flag
+
+    @app.before_request
+    def promote_admin_if_needed():
+        if current_user.is_authenticated:
+            ensure_admin_flag(current_user)
 
     with app.app_context():
         from app.models import User, Post
