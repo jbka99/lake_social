@@ -54,7 +54,8 @@
     {% endif %}
 
     {# Trim to avoid weird leading indentation/newlines from textarea input #}
-    {% set content = (post.content or '')|trim %}
+    {% set content = (post.content or '')|replace('\r\n', '\n') %}
+    {% set content = content.lstrip() %}
     {% set PREVIEW_LEN = 220 %}
     {% set is_long = content|length > PREVIEW_LEN %}
     {% set preview_text = content[:PREVIEW_LEN] %}

@@ -37,7 +37,8 @@
         </div>
 
         <div class="text-secondary small mb-1">О себе</div>
-        {% set bio = (user.bio or '')|trim %}
+        {% set bio = (user.bio or '')|replace('\r\n', '\n') %}
+        {% set bio = bio.lstrip() %}
         <div class="text-light-emphasis" style="white-space: pre-wrap;">
           {{ bio if bio else 'Пользователь еще ничего не рассказал о себе.' }}
         </div>
