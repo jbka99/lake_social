@@ -4,8 +4,17 @@ from app.models import Post, User
 from typing import Optional, Iterable
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import func
+from flask import current_app
 
 # Admin op
+
+def ensure_admin_flag(user: User) -> bool:
+    admins = current_app.config.get("ADMIN_USERNAMES", set())
+    if user and user.username in admins and not user.is_admin:
+        user.is_admin = True
+        db.session.commit()
+        return True
+    return False
 
 @dataclass
 class DeleteAllPostsFromUserResult:

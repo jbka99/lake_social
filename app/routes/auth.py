@@ -17,6 +17,8 @@ def login():
 
         if user and user.check_password(pwd):
             login_user(user)
+            from app.services import ensure_admin_flag
+            ensure_admin_flag(user)
             return redirect(url_for('routes.index'))
         
         flash('Incorrect login or password')
