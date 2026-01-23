@@ -1,325 +1,98 @@
-/* static/style.css */
-:root {
-    --bg-color: #1a1a1a;       /* Темный фон */
-    --card-bg: #242424;       /* Фон карточки */
-    --text-color: #e0e0e0;    /* Цвет текста */
-    --accent-green: #2ecc71;  /* Основной зеленый (Emerald) */
-    --hover-green: #27ae60;   /* Темно-зеленый для наведения */
+/* static/style.css
+   Minimal theme layer on top of Bootstrap 5 (dark).
+   Goal: no global layout overrides, only gentle styling.
+*/
+
+:root{
+  --lake-bg: #0b0f0c;
+  --lake-surface: #0f1411;
+  --lake-border: #2a2f2c;
+  --lake-text-muted: #a7b0a9;
+  --lake-accent: #2ecc71;
 }
 
-.main-nav {
-    background: #111;
-    padding: 15px 0;
-    border-bottom: 1px solid #333;
-    margin-bottom: 30px;
+/* Base */
+body{
+  background: radial-gradient(1200px 600px at 30% -10%, rgba(46,204,113,0.18), transparent 60%),
+              radial-gradient(900px 500px at 90% 0%, rgba(46,204,113,0.10), transparent 55%),
+              var(--lake-bg) !important;
 }
 
-.nav-container {
-    max-width: 800px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
+/* Make Bootstrap dark controls look consistent */
+.form-control,
+.form-select,
+.form-control:disabled,
+.form-select:disabled{
+  background-color: #0d1110;
+  border-color: var(--lake-border);
+  color: #e9f0ea;
 }
 
-.nav-logo {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--accent-green);
-    text-decoration: none;
+.form-control::placeholder,
+textarea.form-control::placeholder{
+  color: rgba(233, 240, 234, 0.45);
 }
 
-.nav-links a {
-    color: white;
-    text-decoration: none;
-    margin-left: 20px;
-    font-size: 0.9rem;
-    transition: 0.3s;
+.form-control:focus,
+.form-select:focus{
+  border-color: rgba(46,204,113,0.65);
+  box-shadow: 0 0 0 .20rem rgba(46,204,113,0.18);
 }
 
-.nav-links a:hover {
-    color: var(--accent-green);
+/* Cards used in templates already have bg-black and border-secondary.
+   Add a subtle hover to make feed feel alive. */
+.card{
+  transition: transform .10s ease, border-color .10s ease;
 }
 
-.create-post, .post-item {
-    background: #1a1a1a;
-    padding: 15px;
-    border-radius: 8px;
-    margin-top: 20px;
-    text-align: left;
+.card:hover{
+  transform: translateY(-1px);
+  border-color: rgba(46,204,113,0.35) !important;
 }
 
-.create-post input {
-    width: 100%;
-    margin-bottom: 10px;
-    background: #000;
-    border: 1px solid #333;
-    color: white;
-    padding: 8px;
+/* Links */
+a{
+  color: #d7efe0;
 }
 
-.post-item h4 {
-    color: var(--accent-green);
-    margin: 5px 0;
+a:hover{
+  color: #ffffff;
 }
 
-.post-header {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    color: #888;
-    margin-bottom: 10px;
+/* Buttons: keep Bootstrap, only tweak outline-success readability on dark */
+.btn-outline-success{
+  border-color: rgba(46,204,113,0.55);
+  color: #d7efe0;
 }
 
-.post-header strong {
-    color: var(--accent-green);
+.btn-outline-success:hover{
+  border-color: rgba(46,204,113,0.85);
 }
 
-.btn-edit {
-    display: inline-block;
-    padding: 6px 15px;
-    background-color: transparent;
-    border: 1px solid var(--accent-green);
-    color: var(--accent-green);
-    border-radius: 20px;
-    text-decoration: none;
-    font-size: 0.8rem;
-    margin-bottom: 10px;
-    transition: 0.3s;
+/* Pagination dark */
+.pagination .page-link{
+  background-color: #0d1110;
+  border-color: var(--lake-border);
+  color: #e9f0ea;
 }
 
-.btn-edit:hover {
-    background-color: var(--accent-green);
-    color: black;
+.pagination .page-link:hover{
+  border-color: rgba(46,204,113,0.45);
 }
 
-textarea {
-    width: 100%;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid #444;
-    background-color: #1a1a1a;
-    color: white;
-    font-family: inherit;
-    box-sizing: border-box;
-    resize: vertical; /* Позволяет тянуть поле только вниз */
+.pagination .page-item.disabled .page-link{
+  color: rgba(233, 240, 234, 0.35);
+  background-color: #0d1110;
+  border-color: var(--lake-border);
 }
 
-.settings-card h2 {
-    color: var(--accent-green);
-    margin-bottom: 20px;
+/* Small helper so long text doesn't overflow */
+.posts-list .card-body{
+  overflow-wrap: anywhere;
 }
 
-.profile-card {
-    text-align: center;
-}
-
-.profile-avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 3px solid var(--accent-green);
-    object-fit: cover;
-    margin-bottom: 15px;
-}
-
-.profile-info h1 {
-    margin: 10px 0;
-    color: var(--accent-green);
-}
-
-.user-age {
-    color: #888;
-    font-size: 0.9rem;
-}
-
-.user-bio {
-    margin-top: 20px;
-    text-align: left;
-    background: #1a1a1a;
-    padding: 15px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    line-height: 1.5;
-}
-
-.btn-logout {
-    color: #e74c3c;
-    text-decoration: none;
-    font-size: 0.8rem;
-    transition: 0.3s;
-}
-
-.btn-logout:hover {
-    text-decoration: underline;
-}
-
-.flash-message {
-    color: #e74c3c;
-    text-align: center;
-    margin-bottom: 15px;
-    font-size: 0.9rem;
-    background: rgba(231, 76, 60, 0.1); /* Легкий фон под ошибку */
-    padding: 10px;
-    border-radius: 5px;
-}
-
-body {
-    font-family: 'Inter', -apple-system, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    display: block;
-    justify-content: center;
-    /* align-items: center; */
-    /* height: 100vh; */
-    margin: 0;
-}
-
-.container {
-    background-color: var(--card-bg);
-    padding: 2.5rem;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    /* width: 100%; */
-    max-width: 800px;
-    margin: 20px auto;
-    border: 1px solid #333;
-}
-
-h2 {
-    margin-top: 0;
-    text-align: center;
-    color: var(--accent-green);
-    font-weight: 500;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 0.9rem;
-    color: #888;
-}
-
-input {
-    width: 100%;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid #444;
-    background-color: #1a1a1a;
-    color: white;
-    box-sizing: border-box; /* Чтобы padding не раздувал ширину */
-    transition: border-color 0.3s ease;
-}
-
-input:focus {
-    outline: none;
-    border-color: var(--accent-green);
-}
-
-button {
-    width: 100%;
-    padding: 12px;
-    background-color: var(--accent-green);
-    color: #1a1a1a;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.1s ease;
-}
-
-button:hover {
-    background-color: var(--hover-green);
-}
-
-button:active {
-    transform: scale(0.98);
-}
-
-.auth-page {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-}
-.auth-container {
-    max-width: 350px !important; /* Узкое окно только для логина */
-}
-
-.post-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* Центрируем элементы по вертикали */
-}
-
-.btn-delete {
-    background: none;
-    border: none;
-    color: #e74c3c;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0 5px;
-    line-height: 1;
-    transition: 0.3s;
-    width: auto; /* Чтобы не растягивалась на всю ширину как основные кнопки */
-}
-
-.btn-delete:hover {
-    color: #c0392b;
-    transform: scale(1.2);
-}
-
-.post-header a:hover strong {
-    color: var(--accent-green);
-    text-decoration: underline;
-}
-
-/* Контейнер для фото и имени */
-.author-info {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* Расстояние между фото и текстом */
-}
-
-/* Стиль маленькой аватарки в посте */
-.post-avatar {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%; /* Делаем круглой */
-    object-fit: cover;
-    border: 1px solid #444;
-}
-
-/* Настройка заголовка для размещения элементов по краям */
-.post-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.author-name {
-    text-decoration: none;
-    color: inherit;
-}
-
-.author-name:hover {
-    color: #2ecc71; /* Подсветка при наведении */
-}
-
-.author-names-block {
-    display: flex;
-    flex-direction: column; /* Имя и юзернейм друг под другом */
-    line-height: 1.2;
-}
-
-.author-username {
-    font-size: 0.85rem;
-    color: #888; /* Серый цвет */
-    font-weight: normal;
+/* Make “×” delete button look centered */
+.btn[aria-label="Удалить пост"]{
+  line-height: 1;
+  padding: .25rem .55rem;
 }
