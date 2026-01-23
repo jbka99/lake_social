@@ -11,27 +11,33 @@ from app.services import (
     admin_bulk_delete_users,
 )
 
-def admin_reqired(view):
+
+def admin_required(view):
     @wraps(view)
     def wrapper(*args, **kwargs):
         if not current_user.is_authenticated:
             return redirect(url_for('routes.login'))
-        if not bool(getattr(current_user, 'is_admn', False)):
+
+        # ВАЖНО: is_admin, без опечаток
+        if not bool(getattr(current_user, 'is_admin', False)):
             flash('Доступ запрещён: только для администраторов.', 'danger')
             return redirect(url_for('routes.feed'))
+
         return view(*args, **kwargs)
     return wrapper
 
+
 @bp.route('/admin/users')
 @login_required
-@admin_reqired
+@admin_required
 def admin_users():
     users = User.query.order_by(User.id.asc()).all()
     return render_template('admin_users.html', users=users)
 
-@bp.route('/admin/users')
+
+@bp.route('/admin/user/<int:user_id>/posts/delete', methods=['POST'])
 @login_required
-@admin_reqired
+@admin_required
 def admin_delete_user_posts(user_id: int):
     result = admin_delete_all_posts_from_user(
         target_user_id=user_id,
@@ -47,9 +53,10 @@ def admin_delete_user_posts(user_id: int):
 
     return redirect(url_for('routes.admin_users'))
 
+
 @bp.route('/admin/user/<int:user_id>/delete', methods=['POST'])
 @login_required
-@admin_reqired
+@admin_required
 def admin_delete_user_account(user_id: int):
     result = admin_delete_user(
         target_user_id=user_id,
@@ -71,7 +78,7 @@ def admin_delete_user_account(user_id: int):
 
 @bp.route('/admin/users/delete', methods=['POST'])
 @login_required
-@admin_reqired
+@admin_required
 def admin_delete_users_bulk():
     ids = request.form.getlist('user_ids')
 
