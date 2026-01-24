@@ -3,6 +3,39 @@ from dotenv import load_dotenv
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
+
+def _resolve_sqlite_path(uri: str, project_root: str) -> str:
+    """Convert relative SQLite URI to absolute path.
+    
+    Args:
+        uri: SQLite URI like 'sqlite:///instance/local.db'
+        project_root: Absolute path to project root directory
+        
+    Returns:
+        Absolute SQLite URI like 'sqlite:///E:/path/to/project/instance/local.db'
+    """
+    if not uri.startswith('sqlite:///'):
+        return uri
+    
+    # Extract path after sqlite:///
+    relative_path = uri[10:]  # Remove 'sqlite:///'
+    
+    # Join with project root and normalize path
+    absolute_path = os.path.abspath(os.path.join(project_root, relative_path))
+    
+    # Ensure instance directory exists BEFORE any SQLAlchemy connection attempt
+    instance_dir = os.path.dirname(absolute_path)
+    if instance_dir and not os.path.exists(instance_dir):
+        os.makedirs(instance_dir, exist_ok=True)
+    
+    # Normalize separators for Windows (SQLite expects forward slashes)
+    # On Windows, SQLite URI format is: sqlite:///E:/path/to/db.db (no leading slash before drive)
+    absolute_path = absolute_path.replace('\\', '/')
+    
+    # DO NOT add leading slash before Windows drive letter
+    # SQLite handles E:/ directly, not /E:/
+    
+    return f'sqlite:///{absolute_path}'
             
 class Config:
     default_admins = {"admin"}  # fallback
@@ -24,8 +57,12 @@ class Config:
         uri = uri.replace("postgres://", "postgresql://", 1)
     
     if not uri and IS_DEV:
-        # safe local default
+        # safe local default - will be resolved to absolute path in create_app
         uri = "sqlite:///instance/local.db"
+    
+    # Resolve SQLite paths to absolute if in dev mode
+    if uri and uri.startswith('sqlite:///') and IS_DEV:
+        uri = _resolve_sqlite_path(uri, basedir)
 
     SQLALCHEMY_DATABASE_URI = uri
     SQLALCHEMY_TRACK_MODIFICATIONS = False
