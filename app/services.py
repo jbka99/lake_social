@@ -67,6 +67,26 @@ def ensure_admin_flag(user: User) -> bool:
         return True
     return False
 
+@dataclass(frozen=True)
+class DeleteCommentResult:
+    deleted: bool
+    reason: str # "ok" | "not_found" | "forbidden"
+
+def delete_comment(thread_id: int, comment_id: int, actor_user_id: int, actor_is_admin: bool) -> DeleteCommentResult:
+    comment = db.session.get(Comment, int(comment_id))
+    if comment is None:
+        return DeleteCommentResult(deleted=False, reason="not_found")
+
+    if comment.post_id != thread_id:
+        return DeleteCommentResult(deleted=False, reason="not_found")
+
+    if (not actor_is_admin) and (comment.user_id != int(actor_user_id)):
+        return DeleteCommentResult(deleted=False, reason="forbidden")
+    
+    db.session.delete(comment)
+    db.session.commit()
+    return DeleteCommentResult(deleted=True, reason="ok")
+
 @dataclass
 class DeleteAllPostsFromUserResult:
     deleted: bool

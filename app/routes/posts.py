@@ -14,6 +14,7 @@ from app.services import (
     create_update,
     list_updates,
     create_comment,
+    delete_comment,
 )
 
 @bp.route('/', methods=['GET', 'POST'])
@@ -216,4 +217,25 @@ def add_comment(thread_id: int):
         else:
             flash("Неизвестная ошибка.", "danger")
 
+    return redirect(url_for('routes.thread_detail', thread_id=thread_id))
+
+@bp.route('/thread/<int:thread_id>/comment/<int:comment_id>/delete', methods=['POST'])
+@login_required
+def delete_comment_route(thread_id: int, comment_id: int):
+    result = delete_comment(
+        thread_id=thread_id,
+        comment_id=comment_id,
+        actor_user_id=current_user.id,
+        actor_is_admin=bool(getattr(current_user, "is_admin", False)),
+    )
+
+    if result.deleted:
+        flash('Комментарий удален.', 'success')
+    elif result.reason == "forbidden":
+        flash('Вы не можете удалить чужой комментарий!', 'danger')
+    elif result.reason == "not_found":
+        flash('Комментарий не найден.', 'danger')
+    else:
+        flash('Неизвестная ошибка.', 'danger')
+    
     return redirect(url_for('routes.thread_detail', thread_id=thread_id))

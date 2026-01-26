@@ -183,6 +183,25 @@ function cancelReply() {
               <span class="text-secondary"> · {{ comment.date_posted.strftime('%H:%M | %d.%m.%Y') }}</span>
             </div>
 
+            {% if current_user.is_admin or comment.author == current_user %}
+            <div class="d-flex justify-content-end mt-1">
+                <form 
+                     action="{{ url_for('routes.delete_comment_route', thread_id=thread.id, comment_id=comment.id) }}"
+                     method="POST"
+                     class="m-0"
+                >
+                  <button 
+                    type="submit"
+                    class="btn btn-sm btn-outline-danger"
+                    onclick="return confirm('Удалить этот комментарий?')"
+                    title="Удалить"
+                  >
+                    🗑
+                  </button>
+                </form>
+              </div>
+              {% endif %}
+          
             <div class="comment-content">
               {% if comment.reply_to_user_id and comment.reply_to_user %}
                 <a href="{{ url_for('routes.user_profile', username=comment.reply_to_user.username) }}"
