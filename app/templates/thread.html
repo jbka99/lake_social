@@ -58,6 +58,64 @@ function cancelReply() {
   currentReplyTo = null;
   // Image input and preview remain unchanged
 }
+
+// Image attachment logic for comment form
+document.addEventListener('DOMContentLoaded', function() {
+  const input = document.getElementById('comment-image-input');
+  const previewContainer = document.getElementById('comment-image-preview');
+  const previewImg = previewContainer?.querySelector('img');
+  const removeBtn = previewContainer?.querySelector('.image-preview-remove');
+
+  const attachBtn = document.getElementById('comment-attach-btn');
+  const fileNameEl = document.getElementById('comment-file-name');
+
+  if (!input || !previewContainer || !previewImg || !removeBtn || !attachBtn || !fileNameEl) {
+    return;
+  }
+
+  let currentObjectURL = null;
+
+  input.addEventListener('change', () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+
+    // Освободить предыдущий URL, если был
+    if (currentObjectURL) {
+      URL.revokeObjectURL(currentObjectURL);
+    }
+
+    currentObjectURL = URL.createObjectURL(file);
+    previewImg.src = currentObjectURL;
+    previewContainer.classList.remove('d-none');
+
+    // имя файла
+    fileNameEl.textContent = file.name;
+
+    // спрятать скрепку
+    attachBtn.classList.add('d-none');
+  });
+
+  removeBtn.addEventListener('click', () => {
+    // Освободить URL
+    if (currentObjectURL) {
+      URL.revokeObjectURL(currentObjectURL);
+      currentObjectURL = null;
+    }
+
+    // очистить input
+    input.value = '';
+
+    // очистить превью
+    previewImg.src = '';
+    previewContainer.classList.add('d-none');
+
+    // вернуть скрепку
+    attachBtn.classList.remove('d-none');
+
+    // скрыть имя файла
+    fileNameEl.textContent = '';
+  });
+});
 </script>
 <!-- Ненужная кнопка навигации назад -->
 <!-- <div class="mb-3">
@@ -102,7 +160,7 @@ function cancelReply() {
             aria-label="Удалить тред"
             title="Удалить"
           >
-            ×
+            🗑
           </button>
         </form>
       {% endif %}
@@ -112,7 +170,7 @@ function cancelReply() {
       <h2 class="h5 mt-3 mb-3 fw-bold">{{ thread.title }}</h2>
     {% endif %}
 
-    <div class="post-content sw-textblock">{{ thread.content }}</div>
+    <div class="post-content sw-textblock">{{ thread.content|linkify }}</div>
 
     {% if thread.image_url %}
       <div class="mt-3">
@@ -144,18 +202,45 @@ function cancelReply() {
       
       <textarea name="content"
            id="comment-textarea"
-           class="form-control bg-black text-light border-secondary mb-2"
+           class="form-control bg-black text-light border-secondary mb-2 js-autogrow"
            rows="4"
            placeholder="Ваш комментарий..."
            required></textarea>
 
-      <div class="mb-2">
+      <!-- <div class="mb-2">
         <input type="file" name="image" accept="image/*" class="form-control comment-image-input" id="comment-image-input">
         <div class="image-preview-container mt-2" id="comment-image-preview" style="display: none;">
           <img src="" alt="Preview" class="image-preview" style="max-width: 100%; max-height: 200px; object-fit: contain;">
           <button type="button" class="btn btn-sm btn-outline-secondary mt-2 image-preview-remove">Убрать</button>
         </div>
-      </div>
+      </div> -->
+
+      <div class="mb-2 d-flex align-items-center gap-2 flex-wrap">
+        <input
+          type="file"
+          name="image"
+          accept="image/*"
+          id="comment-image-input"
+          class="d-none"
+        >
+
+        <label for="comment-image-input"
+          class="btn btn-sm btn-outline-secondary attach-btn"
+          id="comment-attach-btn"
+          title="Прикрепить изображение">
+        📎
+        </label>
+
+        <div class="image-preview-container mt-2 d-none" id="comment-image-preview">
+          <span class="small text-secondary d-block mb-2" id="comment-file-name"></span>
+          <img src="" alt="Preview" class="image-preview" 
+          style="max-width: 100%; max-height: 200px; object-fit: contain;">
+          <button type="button" 
+              class="btn btn-sm btn-outline-secondary mt-2 image-preview-remove">
+            Убрать
+          </button>
+        </div>
+        </div>
 
       <div class="d-flex justify-content-end">
         <button class="btn btn-outline-light btn-sm" type="submit">
@@ -220,11 +305,11 @@ function cancelReply() {
 
             {# Reply button #}
             {% if current_user.is_authenticated %}
-            <div class="mb-2">
+            <div class="d-flex justify-content-end mt-1">
               <button class="btn btn-sm btn-outline-secondary" 
                       type="button" 
                       onclick="startReply('{{ comment.id }}', '{{ comment.author.username }}', '{{ comment.author.id }}')">
-                Ответить
+                ↩
               </button>
             </div>
             {% endif %}

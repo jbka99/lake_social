@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SWAMP | {% block title %}{% endblock %}</title>
+  <title>Swamp | {% block title %}{% endblock %}</title>
   <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -163,79 +163,217 @@
   ></script>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      document.querySelectorAll(".js-toggle-post").forEach((btn) => {
-        const targetId = btn.getAttribute("data-target");
-        if (!targetId) return;
+    // Thread expand/collapse toggle - event delegation
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.js-toggle-post');
+      if (!btn) return;
+      
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const id = btn.dataset.target;
+      if (!id) {
+        console.warn('No data-target on toggle', btn);
+        return;
+      }
+      
+      const container = document.getElementById(id);
+      if (!container) {
+        console.warn('Target not found', id);
+        return;
+      }
 
-        const preview = document.getElementById(`${targetId}-full-preview`);
-        const textShow = btn.getAttribute("data-text-show") || "Показать полностью";
-        const textHide = btn.getAttribute("data-text-hide") || "Скрыть";
+      const restSpan = container.querySelector('.thread-text-rest');
+      if (!restSpan) return;
 
-        btn.addEventListener("click", () => {
-          const isExpanded = btn.getAttribute("aria-expanded") === "true";
-          const nextExpanded = !isExpanded;
-          const textEl = preview?.querySelector("[data-post-text]");
-          const remaining = preview?.querySelector("[data-post-remaining]");
+      const isExpanded = container.classList.contains('is-expanded');
 
-          if (!preview || !textEl || !remaining) return;
+      // Clean up any existing transitionend handler and timeout
+      if (container._transitionEndHandler) {
+        container.removeEventListener('transitionend', container._transitionEndHandler);
+        container._transitionEndHandler = null;
+      }
+      if (container._transitionTimeout) {
+        clearTimeout(container._transitionTimeout);
+        container._transitionTimeout = null;
+      }
 
-          const setHeight = (value) => {
-            textEl.style.height = value;
+      // Get computed transition duration for fallback timer
+      const computedStyle = window.getComputedStyle(container);
+      const transitionDuration = parseFloat(computedStyle.transitionDuration) || 0.22; // fallback to 220ms
+      const fallbackDelay = Math.ceil(transitionDuration * 1000) + 50; // add 50ms buffer
+
+      if (!isExpanded) {
+        // EXPANDING
+        // Step 1: Set explicit current height
+        const currentHeight = container.offsetHeight;
+        container.style.height = currentHeight + 'px';
+
+        // Step 2: Add is-expanded class (CSS reveals rest/hides ellipsis)
+        container.classList.add('is-expanded');
+        btn.classList.add('is-expanded');
+        btn.setAttribute('aria-expanded', 'true');
+
+        // Step 3: On next rAF, measure scrollHeight and animate to target
+        requestAnimationFrame(() => {
+          // Force reflow to ensure CSS changes are applied
+          void container.offsetHeight;
+          
+          const fullHeight = container.scrollHeight;
+          container.style.height = fullHeight + 'px';
+
+          // Step 4: On transitionend, clear style.height
+          const onTransitionEnd = (evt) => {
+            if (evt.propertyName !== 'height') return;
+            container.removeEventListener('transitionend', onTransitionEnd);
+            container.style.height = '';
+            container._transitionEndHandler = null;
+            if (container._transitionTimeout) {
+              clearTimeout(container._transitionTimeout);
+              container._transitionTimeout = null;
+            }
           };
 
-          const afterTransition = (fn) => {
-            setTimeout(fn, 320);
-          };
+          container._transitionEndHandler = onTransitionEnd;
+          container.addEventListener('transitionend', onTransitionEnd, { once: true });
 
-          textEl.style.overflow = "hidden";
-
-          if (nextExpanded) {
-            remaining.style.display = "inline";
-            remaining.classList.remove("is-hidden");
-            preview.classList.add("is-expanded");
-
-            const startHeight = textEl.scrollHeight;
-            setHeight(`${startHeight}px`);
-
-            requestAnimationFrame(() => {
-              const endHeight = textEl.scrollHeight;
-              setHeight(`${endHeight}px`);
-              afterTransition(() => setHeight("auto"));
-            });
-          } else {
-            preview.classList.add("is-collapsing");
-            preview.classList.remove("is-expanded");
-
-            const startHeight = textEl.scrollHeight;
-            setHeight(`${startHeight}px`);
-
-            remaining.classList.add("is-hidden");
-
-            requestAnimationFrame(() => {
-              const endHeight = textEl.scrollHeight;
-              setHeight(`${endHeight}px`);
-              afterTransition(() => {
-                remaining.style.display = "none";
-                preview.classList.remove("is-collapsing");
-                setHeight("auto");
-              });
-            });
-          }
-
-          btn.textContent = nextExpanded ? textHide : textShow;
-          btn.setAttribute("aria-expanded", nextExpanded ? "true" : "false");
+          // Fallback timer
+          container._transitionTimeout = setTimeout(() => {
+            container.style.height = '';
+            if (container._transitionEndHandler === onTransitionEnd) {
+              container.removeEventListener('transitionend', onTransitionEnd);
+              container._transitionEndHandler = null;
+            }
+            container._transitionTimeout = null;
+          }, fallbackDelay);
         });
+      } else {
+        // COLLAPSING
+        // Step 1: Set explicit current full height
+        const currentHeight = container.scrollHeight;
+        container.style.height = currentHeight + 'px';
+
+        // Step 2: Remove is-expanded class (CSS hides rest/shows ellipsis)
+        container.classList.remove('is-expanded');
+        btn.classList.remove('is-expanded');
+        btn.setAttribute('aria-expanded', 'false');
+
+        // Step 3: On next rAF, measure collapsed scrollHeight and animate to collapsed height
+        requestAnimationFrame(() => {
+          // Force reflow to ensure CSS changes are applied
+          void container.offsetHeight;
+          
+          const collapsedHeight = container.scrollHeight;
+
+          // If heights are equal, just clear height immediately
+          if (collapsedHeight === currentHeight) {
+            container.style.height = '';
+          } else {
+            container.style.height = collapsedHeight + 'px';
+
+            // Step 4: On transitionend, clear style.height
+            const onTransitionEnd = (evt) => {
+              if (evt.propertyName !== 'height') return;
+              container.removeEventListener('transitionend', onTransitionEnd);
+              container.style.height = '';
+              container._transitionEndHandler = null;
+              if (container._transitionTimeout) {
+                clearTimeout(container._transitionTimeout);
+                container._transitionTimeout = null;
+              }
+            };
+
+            container._transitionEndHandler = onTransitionEnd;
+            container.addEventListener('transitionend', onTransitionEnd, { once: true });
+
+            // Fallback timer
+            container._transitionTimeout = setTimeout(() => {
+              container.style.height = '';
+              if (container._transitionEndHandler === onTransitionEnd) {
+                container.removeEventListener('transitionend', onTransitionEnd);
+                container._transitionEndHandler = null;
+              }
+              container._transitionTimeout = null;
+            }, fallbackDelay);
+          }
+        });
+      }
+    });
+
+    // Initialize expandables on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.js-expandable').forEach((container) => {
+        const restSpan = container.querySelector('.thread-text-rest');
+        if (!restSpan) return;
+
+        // Ensure collapsed state (CSS handles visibility via is-expanded class)
+        container.classList.remove('is-expanded');
+        // Don't set inline height - let container size naturally to preview content
+        container.style.height = '';
       });
 
+      // Scroll controls
+      function scrollToTop() {
+        smoothScrollTo(0, 800);
+      }
+
+      function scrollToBottom() {
+        smoothScrollTo(document.body.scrollHeight, 800);
+      }
+
+      function smoothScrollTo(target, duration) {
+        const start = window.pageYOffset || document.documentElement.scrollTop;
+        const distance = target - start;
+        let startTime = null;
+
+        function animation(currentTime) {
+          if (startTime === null) startTime = currentTime;
+          const timeElapsed = currentTime - startTime;
+          const progress = Math.min(timeElapsed / duration, 1);
+          
+          // Easing function for smooth acceleration/deceleration
+          const ease = progress < 0.5 
+            ? 2 * progress * progress 
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+          window.scrollTo(0, start + distance * ease);
+
+          if (timeElapsed < duration) {
+            requestAnimationFrame(animation);
+          } else {
+            window.scrollTo(0, target);
+          }
+        }
+
+        requestAnimationFrame(animation);
+      }
+
+      // Support data-scroll attributes (existing)
       document.querySelectorAll("[data-scroll]").forEach((btn) => {
         btn.addEventListener("click", () => {
           const direction = btn.getAttribute("data-scroll");
-          const target = direction === "bottom" ? document.body.scrollHeight : 0;
-          window.scrollTo({ top: target, behavior: "smooth" });
+          if (direction === "bottom") {
+            scrollToBottom();
+          } else {
+            scrollToTop();
+          }
         });
       });
 
+      // Support .scroll-to-top and .scroll-to-bottom classes
+      document.querySelectorAll(".scroll-to-top").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          scrollToTop();
+        });
+      });
+
+      document.querySelectorAll(".scroll-to-bottom").forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          scrollToBottom();
+        });
+      });
     });
   </script>
 
@@ -290,23 +428,51 @@
       // Setup previews for all image inputs when DOM is ready
       document.addEventListener('DOMContentLoaded', function() {
         // Thread creation form
-        const threadInput = document.querySelector('.thread-image-input');
-        if (threadInput) {
-          const threadContainer = threadInput.closest('form')?.querySelector('.image-preview-container');
-          if (threadContainer) {
-            setupImagePreview(threadInput, threadContainer);
+        const threadInput = document.getElementById('thread-image-input');
+        const threadPreviewContainer = document.getElementById('thread-image-preview');
+        const threadAttachBtn = document.getElementById('thread-attach-btn');
+        const threadFileNameEl = document.getElementById('thread-file-name');
+        
+        if (threadInput && threadPreviewContainer && threadAttachBtn && threadFileNameEl) {
+          const threadPreviewImg = threadPreviewContainer.querySelector('img');
+          const threadRemoveBtn = threadPreviewContainer.querySelector('.image-preview-remove');
+          
+          if (threadPreviewImg && threadRemoveBtn) {
+            let threadObjectURL = null;
+            
+            threadInput.addEventListener('change', () => {
+              const file = threadInput.files && threadInput.files[0];
+              if (!file) return;
+              
+              if (threadObjectURL) {
+                URL.revokeObjectURL(threadObjectURL);
+              }
+              
+              threadObjectURL = URL.createObjectURL(file);
+              threadPreviewImg.src = threadObjectURL;
+              threadPreviewContainer.classList.remove('d-none');
+              
+              threadFileNameEl.textContent = file.name;
+              threadAttachBtn.classList.add('d-none');
+            });
+            
+            threadRemoveBtn.addEventListener('click', () => {
+              if (threadObjectURL) {
+                URL.revokeObjectURL(threadObjectURL);
+                threadObjectURL = null;
+              }
+              
+              threadInput.value = '';
+              threadPreviewImg.src = '';
+              threadPreviewContainer.classList.add('d-none');
+              threadAttachBtn.classList.remove('d-none');
+              threadFileNameEl.textContent = '';
+            });
           }
         }
 
-        // Comment form
-        const commentInput = document.querySelector('.comment-image-input');
-        if (commentInput) {
-          const commentContainer = document.getElementById('comment-image-preview');
-          if (commentContainer) {
-            setupImagePreview(commentInput, commentContainer);
-          }
-        }
-
+        // Comment form (handled in thread.html)
+        
         // Update form
         const updateInput = document.querySelector('.update-image-input');
         if (updateInput) {
@@ -315,6 +481,128 @@
             setupImagePreview(updateInput, updateContainer);
           }
         }
+
+        // Avatar form
+        const avatarInput = document.getElementById('avatar-image-input');
+        const avatarPreviewContainer = document.getElementById('avatar-image-preview');
+        const avatarAttachBtn = document.getElementById('avatar-attach-btn');
+        const avatarFileNameEl = document.getElementById('avatar-file-name');
+        
+        if (avatarInput && avatarPreviewContainer && avatarAttachBtn && avatarFileNameEl) {
+          const avatarPreviewImg = avatarPreviewContainer.querySelector('img');
+          const avatarRemoveBtn = avatarPreviewContainer.querySelector('.image-preview-remove');
+          
+          if (avatarPreviewImg && avatarRemoveBtn) {
+            let avatarObjectURL = null;
+            
+            avatarInput.addEventListener('change', () => {
+              const file = avatarInput.files && avatarInput.files[0];
+              if (!file) return;
+              
+              if (avatarObjectURL) {
+                URL.revokeObjectURL(avatarObjectURL);
+              }
+              
+              avatarObjectURL = URL.createObjectURL(file);
+              avatarPreviewImg.src = avatarObjectURL;
+              avatarPreviewContainer.classList.remove('d-none');
+              
+              avatarFileNameEl.textContent = file.name;
+              avatarAttachBtn.classList.add('d-none');
+            });
+            
+            avatarRemoveBtn.addEventListener('click', () => {
+              if (avatarObjectURL) {
+                URL.revokeObjectURL(avatarObjectURL);
+                avatarObjectURL = null;
+              }
+              
+              avatarInput.value = '';
+              avatarPreviewImg.src = '';
+              avatarPreviewContainer.classList.add('d-none');
+              avatarAttachBtn.classList.remove('d-none');
+              avatarFileNameEl.textContent = '';
+            });
+          }
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    // Auto-growing textareas
+    (function() {
+      function adjustTextareaHeight(textarea) {
+        if (!textarea) return;
+        
+        // Reset height to auto to get accurate scrollHeight
+        textarea.style.height = 'auto';
+        
+        // Get computed max-height from CSS
+        const computedStyle = window.getComputedStyle(textarea);
+        const maxHeight = parseFloat(computedStyle.maxHeight) || 400;
+        const scrollHeight = textarea.scrollHeight;
+        
+        // Use requestAnimationFrame for smooth updates
+        requestAnimationFrame(() => {
+          if (scrollHeight > maxHeight) {
+            // Content exceeds max-height, enable scrolling
+            textarea.style.height = maxHeight + 'px';
+            textarea.classList.add('js-autogrow--scroll');
+          } else {
+            // Content fits, grow to content height
+            textarea.style.height = scrollHeight + 'px';
+            textarea.classList.remove('js-autogrow--scroll');
+          }
+        });
+      }
+      
+      function setupAutoGrow(textarea) {
+        if (!textarea) return;
+        
+        // Initial adjustment
+        adjustTextareaHeight(textarea);
+        
+        // Adjust on input
+        textarea.addEventListener('input', function() {
+          adjustTextareaHeight(this);
+        });
+        
+        // Adjust on window resize (in case container width changes)
+        window.addEventListener('resize', function() {
+          adjustTextareaHeight(textarea);
+        });
+      }
+      
+      // Initialize on DOM ready
+      document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.js-autogrow').forEach(setupAutoGrow);
+      });
+      
+      // Also handle dynamically added textareas (e.g., via AJAX)
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          mutation.addedNodes.forEach(function(node) {
+            if (node.nodeType === 1) { // Element node
+              if (node.classList && node.classList.contains('js-autogrow')) {
+                setupAutoGrow(node);
+              }
+              // Check for nested textareas
+              const textareas = node.querySelectorAll && node.querySelectorAll('.js-autogrow');
+              if (textareas) {
+                textareas.forEach(setupAutoGrow);
+              }
+            }
+          });
+        });
+      });
+      
+      // Start observing after DOM is ready
+      document.addEventListener('DOMContentLoaded', function() {
+        observer.observe(document.body, {
+          childList: true,
+          subtree: true
+        });
       });
     })();
   </script>

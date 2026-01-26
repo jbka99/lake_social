@@ -72,6 +72,7 @@ html, body{
   min-height: 100%;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: var(--sw-line-height-base);
+  scroll-behavior: smooth;
 }
 
 body.swamp{
@@ -258,6 +259,19 @@ textarea:focus{
   color: var(--sw-ink);
   box-shadow: var(--sw-focus-ring), var(--sw-shadow);
   outline: none;
+}
+
+/* Auto-growing textareas */
+.js-autogrow {
+  resize: none;
+  overflow-y: hidden;
+  min-height: 100px;
+  max-height: 400px;
+  transition: height 0.2s ease;
+}
+
+.js-autogrow.js-autogrow--scroll {
+  overflow-y: auto;
 }
 
 /* Buttons - dark backgrounds, no borders, smooth transitions */
@@ -448,15 +462,41 @@ main.container-fluid {
 .link-success:hover, .text-success:hover {
   color: #7fc4b5 !important;
 }
-.btn-link{ 
-  color: var(--sw-accent) !important; 
-  transition: var(--sw-transition-fast);
+/* Toggle post button - icon style */
+.toggle-post-btn,
+.js-toggle-post {
+  background: none !important;
   border: none !important;
-  padding: 0;
+  padding: 4px 8px;
+  margin-top: 8px;
+  cursor: pointer;
+  color: var(--sw-accent);
+  transition: color var(--sw-transition-fast), transform var(--sw-transition-fast);
+  box-shadow: none !important;
+  outline: none !important;
+  pointer-events: auto !important;
 }
-.btn-link:hover{ 
-  color: var(--sw-ink) !important; 
-  text-decoration: underline;
+
+.toggle-post-btn:hover {
+  color: var(--sw-ink);
+}
+
+.toggle-post-btn:focus {
+  box-shadow: none !important;
+  outline: none !important;
+  border: none !important;
+}
+
+.toggle-arrow {
+  display: inline-block;
+  font-size: 14px;
+  line-height: 1;
+  transition: transform 200ms ease;
+  transform: rotate(0deg);
+}
+
+.js-toggle-post.is-expanded .toggle-arrow {
+  transform: rotate(180deg);
 }
 
 /* ===== Sidebar component ===== */
@@ -713,31 +753,39 @@ main.container-fluid {
 }
 
 /* Post reveal */
-.post-preview.is-expanded .post-ellipsis{
+.post-preview {
+  overflow: hidden;
+}
+
+/* Thread text expandable container */
+.thread-text {
+  margin: 0;
+  padding: 0;
+}
+
+.thread-text-preview,
+.thread-text-rest {
+  display: inline;
+  white-space: normal;
+}
+
+.thread-text-rest {
   display: none;
 }
 
-.post-text{
-  transition: height .32s ease, opacity .32s ease;
+.thread-text.is-expanded .thread-text-rest {
+  display: inline;
 }
 
-.post-remaining{
-  color: inherit;
-  opacity: 0;
-  transition: opacity .32s ease;
-}
-
-.post-remaining.is-hidden{
+.thread-text.is-expanded .post-ellipsis {
   display: none;
-  opacity: 0;
 }
 
-.post-preview.is-collapsing .post-remaining{
-  opacity: 0;
-}
-
-.post-preview.is-expanded .post-remaining{
-  opacity: 1;
+.js-expandable {
+  overflow: hidden;
+  transition: height 220ms ease;
+  margin: 0;
+  padding: 0;
 }
 
 /* Pagination */
@@ -804,6 +852,18 @@ main.container-fluid {
 .scroll-controls__btn:focus-visible{
   outline: 2px solid rgba(111,181,167,.65);
   outline-offset: 2px;
+}
+
+/* Scroll buttons with classes (can be used independently) */
+.scroll-to-top,
+.scroll-to-bottom {
+  cursor: pointer;
+  transition: var(--sw-transition-fast);
+}
+
+.scroll-to-top:hover,
+.scroll-to-bottom:hover {
+  opacity: 0.85;
 }
 
 .sidebar__item--muted{
@@ -1134,4 +1194,20 @@ hr.border-secondary {
 *::before,
 *::after {
   border-radius: 0 !important;
+}
+
+.thread-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.comment-count {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.open-thread {
+  margin-left: auto;
 }

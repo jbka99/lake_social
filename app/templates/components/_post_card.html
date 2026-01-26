@@ -44,7 +44,7 @@
             aria-label="Удалить тред"
             title="Удалить"
           >
-            ×
+           🗑
           </button>
         </form>
       {% endif %}
@@ -68,35 +68,47 @@
 
     {# NOTE: No auto-animate here. It conflicts with Bootstrap collapse height animation. #}
     <div>
-      <div id="thread-{{ thread.id }}-full-preview" class="post-preview">
-        <p class="mb-0 text-light-emphasis post-content post-text" data-post-text>{{ preview_text }}{% if is_long %}<span class="post-ellipsis">…</span><span class="post-remaining is-hidden" data-post-remaining>{{ remaining_text }}</span>{% endif %}</p>
+      {% if is_long %}
+      <div class="thread-text js-expandable text-light-emphasis" id="thread-{{ thread.id }}-full-preview" style="margin: 0; padding: 0;">
+        <span class="thread-text-preview">{{ preview_text|linkify }}<span class="post-ellipsis">…</span></span><span class="thread-text-rest">{{ remaining_text|trim|linkify }}</span>
       </div>
+      {% else %}
+      <p class="mb-0 text-light-emphasis post-content post-text" style="margin: 0; padding: 0;">{{ content|linkify }}</p>
+      {% endif %}
 
+      {% if is_long %}
+      <button
+        class="js-toggle-post toggle-post-btn"
+        type="button"
+        data-target="thread-{{ thread.id }}-full-preview"
+        aria-expanded="false"
+        aria-controls="thread-{{ thread.id }}-full-preview"
+        aria-label="Показать полностью"
+      >
+        <span class="toggle-arrow">▼</span>
+      </button>
+      {% endif %}
+
+      <div class="thread-footer">
+        <span class="comment-count">
+        {{ thread.comment_count }} 🗨️
+        </span>
+
+        <a href="{{ url_for('routes.thread_detail', thread_id=thread.id)}}"
+        class="open-thread">Открыть тред →</a>
+      </div>
+      
       {% if thread.image_url %}
         <div class="mt-2">
           <img src="{{ thread.image_url }}" alt="Thread image" class="content-image" style="max-width: 100%; height: auto;">
         </div>
       {% endif %}
 
-      {% if is_long %}
-        <button
-          class="btn btn-sm btn-link link-success px-0 mt-1 js-toggle-post"
-          type="button"
-          data-target="thread-{{ thread.id }}"
-          aria-expanded="false"
-          aria-controls="thread-{{ thread.id }}-full-preview"
-          data-text-show="Показать полностью"
-          data-text-hide="Скрыть"
-        >
-          Показать полностью
-        </button>
-      {% endif %}
-
-      <div class="mt-2">
+      <!-- <div class="mt-2">
         <a href="{{ url_for('routes.thread_detail', thread_id=thread.id) }}" class="btn btn-sm btn-link link-success px-0">
           Открыть тред →
         </a>
-      </div>
+      </div> -->
     </div>
 
   </div>

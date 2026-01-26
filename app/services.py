@@ -83,6 +83,13 @@ def delete_comment(thread_id: int, comment_id: int, actor_user_id: int, actor_is
     if (not actor_is_admin) and (comment.user_id != int(actor_user_id)):
         return DeleteCommentResult(deleted=False, reason="forbidden")
     
+    # Update comment count for the thread
+    thread = db.session.get(Thread, int(thread_id))
+    if thread is None:
+        return DeleteCommentResult(deleted=False, reason="not_found")
+
+    thread.comment_count = max(0, (thread.comment_count or 0) - 1)
+    
     db.session.delete(comment)
     db.session.commit()
     return DeleteCommentResult(deleted=True, reason="ok")
@@ -392,6 +399,9 @@ def create_comment(
         if not upload_result["ok"]:
             return {"ok": False, "error": upload_result.get("error", "upload_failed"), "comment_id": None}
         image_url = upload_result.get("url")
+
+    # Update comment count for the thread
+    thread.comment_count = (thread.comment_count or 0) + 1
 
     # Thread.__tablename__ == 'post', so use post_id FK
     comment = Comment(

@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_required
 from sqlalchemy.orm import joinedload, selectinload
 import cloudinary.uploader
@@ -239,3 +239,11 @@ def delete_comment_route(thread_id: int, comment_id: int):
         flash('Неизвестная ошибка.', 'danger')
     
     return redirect(url_for('routes.thread_detail', thread_id=thread_id))
+
+# COMMENT COUNT                                                  
+# @bp.route('/thread/<int:thread_id>/comment/count', methods=['GET'])
+# @login_required
+# def get_comment_count(thread_id: int):
+#     Thread.query.get_or_404(thread_id) # 404 если треда нет
+#     comment_count = Comment.query.filter_by(post_id=thread_id).count()
+#     return jsonify({"thread_id": thread_id, "comment_count": comment_count})

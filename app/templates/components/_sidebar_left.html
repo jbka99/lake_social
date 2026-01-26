@@ -13,15 +13,36 @@
 
         <div>
           <label class="form-label text-secondary">Текст</label>
-          <textarea name="content" class="form-control" placeholder="Ваши мысли..." rows="5" required></textarea>
+          <textarea name="content" class="form-control js-autogrow" placeholder="Ваши мысли..." rows="5" required></textarea>
         </div>
 
         <div>
           <label class="form-label text-secondary">Изображение (опционально)</label>
-          <input type="file" name="image" accept="image/*" class="form-control thread-image-input">
-          <div class="image-preview-container mt-2" style="display: none;">
-            <img src="" alt="Preview" class="image-preview" style="max-width: 100%; max-height: 200px; object-fit: contain;">
-            <button type="button" class="btn btn-sm btn-outline-secondary mt-2 image-preview-remove">Убрать</button>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <input
+              type="file"
+              name="image"
+              accept="image/*"
+              id="thread-image-input"
+              class="d-none"
+            >
+
+            <label for="thread-image-input"
+              class="btn btn-sm btn-outline-secondary attach-btn"
+              id="thread-attach-btn"
+              title="Прикрепить изображение">
+              📎
+            </label>
+
+            <div class="image-preview-container mt-2 d-none" id="thread-image-preview">
+              <span class="small text-secondary d-block mb-2" id="thread-file-name"></span>
+              <img src="" alt="Preview" class="image-preview" 
+              style="max-width: 100%; max-height: 200px; object-fit: contain;">
+              <button type="button" 
+                  class="btn btn-sm btn-outline-secondary mt-2 image-preview-remove">
+                Убрать
+              </button>
+            </div>
           </div>
         </div>
 

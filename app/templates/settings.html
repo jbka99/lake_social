@@ -14,29 +14,49 @@
     <div class="card bg-black border border-secondary shadow-sm">
       <div class="card-body p-4">
         <form action="{{ url_for('routes.update_avatar') }}"
-                method="POST"
-                enctype="multipart/form-data"
-                class="d-grid gap-2">
+              method="POST"
+              enctype="multipart/form-data"
+              class="d-grid gap-2">
 
-            <div>
-              <label class="form-label text-secondary mb-2">Аватар</label>
+          <div>
+            <label class="form-label text-secondary mb-2">Аватар</label>
 
-              <div class="d-flex flex-column flex-sm-row gap-2 align-items-stretch align-items-sm-center">
-                <input
-                  type="file"
-                  name="avatar"
-                  accept="image/*"
-                  required
-                  class="form-control"
-                >
+            <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+              <input
+                type="file"
+                name="avatar"
+                accept="image/*"
+                id="avatar-image-input"
+                class="d-none"
+                required
+              >
 
-                <button type="submit" class="btn btn-primary">
-                  Загрузить
+              <label for="avatar-image-input"
+                class="btn btn-sm btn-outline-secondary attach-btn"
+                id="avatar-attach-btn"
+                title="Прикрепить изображение">
+                📎
+              </label>
+
+              <div class="image-preview-container mt-2 d-none" id="avatar-image-preview">
+                <span class="small text-secondary d-block mb-2" id="avatar-file-name"></span>
+                <img src="" alt="Preview" class="image-preview" 
+                style="max-width: 100%; max-height: 200px; object-fit: contain;">
+                <button type="button" 
+                    class="btn btn-sm btn-outline-secondary mt-2 image-preview-remove">
+                  Убрать
                 </button>
               </div>
             </div>
 
-          </form>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary">
+                Загрузить
+              </button>
+            </div>
+          </div>
+
+        </form>
 
         <form method="POST" class="d-grid gap-3">
 
@@ -72,7 +92,7 @@
             <label class="form-label text-secondary">О себе</label>
             {# IMPORTANT: keep textarea value inline (no leading newline/indent) #}
             <textarea name="bio"
-          class="form-control"
+          class="form-control js-autogrow"
           rows="5"
           placeholder="Расскажите о себе...">{{ (user.bio or '')|trim }}</textarea>
           </div>
